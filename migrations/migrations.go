@@ -85,6 +85,42 @@ func GetMigrations() []Migration {
 			`,
 			Down: `DROP TABLE IF EXISTS schema_migrations;`,
 		},
+		{
+			Version: 4,
+			Name:    "add_timestamps_to_questions",
+			Up: `
+				-- Add created_at column if it doesn't exist
+				DO $$ 
+				BEGIN 
+					IF NOT EXISTS (
+						SELECT 1 FROM information_schema.columns 
+						WHERE table_name = 'questions' AND column_name = 'created_at'
+					) THEN
+						ALTER TABLE questions ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+					END IF;
+				END $$;
+
+				-- Add updated_at column if it doesn't exist  
+				DO $$ 
+				BEGIN 
+					IF NOT EXISTS (
+						SELECT 1 FROM information_schema.columns 
+						WHERE table_name = 'questions' AND column_name = 'updated_at'
+					) THEN
+						ALTER TABLE questions ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+					END IF;
+				END $$;
+
+				-- Update existing rows to have current timestamp
+				UPDATE questions 
+				SET created_at = NOW(), updated_at = NOW() 
+				WHERE created_at IS NULL OR updated_at IS NULL;
+			`,
+			Down: `
+				ALTER TABLE questions DROP COLUMN IF EXISTS created_at;
+				ALTER TABLE questions DROP COLUMN IF EXISTS updated_at;
+			`,
+		},
 	}
 }
 
