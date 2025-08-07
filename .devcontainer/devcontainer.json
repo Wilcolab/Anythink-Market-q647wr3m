@@ -1,0 +1,39 @@
+{
+  "name": "Go & PostgreSQL",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/trywilco/anythink-market-docker-images/wilco-agent:1.0.18": {}
+  },
+  "forwardPorts": [8080, 5432],
+  "portsAttributes": {
+    "8080": {
+      "label": "Go API Server",
+      "elevateIfNeeded": true,
+      "requireLocalPort": true,
+      "onAutoForward": "silent"
+    },
+    "5432": {
+      "label": "PostgreSQL Database",
+      "elevateIfNeeded": true,
+      "requireLocalPort": false,
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-vscode.vscode-json",
+        "ckolkman.vscode-postgres"
+      ]
+    }
+  },
+  "remoteUser": "vscode"
+}
