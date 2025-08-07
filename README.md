@@ -21,6 +21,7 @@ A RESTful quiz API built with Go and PostgreSQL, featuring proper database integ
 ├── migrations/      # Database schema migrations
 ├── models/          # Data models and structs
 ├── repository/      # Data access layer
+├── services/        # Business logic layer
 └── main.go         # HTTP server and API routes
 ```
 
@@ -88,9 +89,51 @@ PORT=8080                 # Server port (optional, defaults to 8080)
 - `GET /api/questions` - Get all quiz questions
 - `GET /api/questions/{id}` - Get specific question by ID
 
+### Quiz Submission
+- `POST /api/quiz/submit` - Submit quiz answers and get score
+
 ### System
 - `GET /health` - Health check endpoint
 - `GET /` - Welcome message
+
+## Quiz Submission
+
+Submit quiz answers to get your score:
+
+**POST** `/api/quiz/submit`
+
+**Request Body:**
+```json
+{
+  "answers": [
+    {"questionId": 1, "answerId": 1},
+    {"questionId": 2, "answerId": 6},
+    {"questionId": 3, "answerId": 12},
+    {"questionId": 4, "answerId": 14},
+    {"questionId": 5, "answerId": 18}
+  ],
+  "userId": "user123" // optional
+}
+```
+
+**Response:**
+```json
+{
+  "score": 4,
+  "total": 5,
+  "correctAnswers": 4,
+  "percentage": 80,
+  "passed": true,
+  "sessionId": "session_1754561631"
+}
+```
+
+**Validation Rules:**
+- All questions must be answered
+- Question IDs must be valid
+- Answer IDs must be valid options for the respective questions
+- No duplicate answers for the same question
+- Passing threshold: 60%
 
 ## Database Operations
 

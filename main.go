@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-quiz-api/database"
+	"go-quiz-api/models"
 	"go-quiz-api/repository"
+	"go-quiz-api/services"
 	"log"
 	"net/http"
 	"strconv"
@@ -26,6 +28,9 @@ func main() {
 
 	// Initialize repository
 	questionRepo := repository.NewQuestionRepository(db.DB)
+
+	// Initialize services
+	quizService := services.NewQuizService(questionRepo)
 
 	// CORS middleware
 	withCORS := func(h http.HandlerFunc) http.HandlerFunc {
@@ -91,6 +96,33 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(question)
+	}))
+
+	// Quiz submission endpoint
+	http.HandleFunc("/api/quiz/submit", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
+			return
+		}
+
+		var submission models.QuizSubmissionRequest
+		if err := json.NewDecoder(r.Body).Decode(&submission); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid JSON body"})
+			return
+		}
+
+		result, err := quizService.SubmitQuiz(&submission)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
 	}))
 
 	// Health check endpoint

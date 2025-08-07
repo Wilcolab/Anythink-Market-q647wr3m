@@ -39,3 +39,25 @@ type QuizSession struct {
 	StartedAt   time.Time  `json:"started_at" db:"started_at"`
 	CompletedAt *time.Time `json:"completed_at" db:"completed_at"`
 }
+
+// QuizAnswer represents a single answer in a quiz submission
+type QuizAnswer struct {
+	QuestionID int `json:"questionId" validate:"required"`
+	AnswerID   int `json:"answerId" validate:"required"`
+}
+
+// QuizSubmissionRequest represents the request body for quiz submission
+type QuizSubmissionRequest struct {
+	Answers []QuizAnswer `json:"answers" validate:"required,min=1"`
+	UserID  string       `json:"userId,omitempty"` // Optional user identifier
+}
+
+// QuizSubmissionResponse represents the response for quiz submission
+type QuizSubmissionResponse struct {
+	Score          int     `json:"score"`
+	Total          int     `json:"total"`
+	CorrectAnswers int     `json:"correctAnswers"`
+	Percentage     float64 `json:"percentage"`
+	Passed         bool    `json:"passed"`
+	SessionID      string  `json:"sessionId,omitempty"`
+}
