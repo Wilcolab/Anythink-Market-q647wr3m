@@ -86,7 +86,7 @@ func GetMigrations() []Migration {
 			Down: `DROP TABLE IF EXISTS schema_migrations;`,
 		},
 		{
-			Version: 4,
+			Version: 6,
 			Name:    "add_timestamps_to_questions",
 			Up: `
 				-- Add created_at column if it doesn't exist
@@ -119,6 +119,16 @@ func GetMigrations() []Migration {
 			Down: `
 				ALTER TABLE questions DROP COLUMN IF EXISTS created_at;
 				ALTER TABLE questions DROP COLUMN IF EXISTS updated_at;
+			`,
+		},
+		{
+			Version: 7,
+			Name:    "drop_answer_column_from_questions",
+			Up: `
+				ALTER TABLE questions DROP COLUMN IF EXISTS answer;
+			`,
+			Down: `
+				ALTER TABLE questions ADD COLUMN answer INTEGER;
 			`,
 		},
 	}
