@@ -131,6 +131,16 @@ func GetMigrations() []Migration {
 				ALTER TABLE questions ADD COLUMN answer INTEGER;
 			`,
 		},
+		{
+			Version: 8,
+			Name:    "add_is_correct_to_options",
+			Up: `
+				ALTER TABLE options ADD COLUMN IF NOT EXISTS is_correct BOOLEAN NOT NULL DEFAULT FALSE;
+			`,
+			Down: `
+				ALTER TABLE options DROP COLUMN IF EXISTS is_correct;
+			`,
+		},
 	}
 }
 
