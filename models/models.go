@@ -52,12 +52,39 @@ type QuizSubmissionRequest struct {
 	UserID  string       `json:"userId,omitempty"` // Optional user identifier
 }
 
+// AlternativeQuizSubmissionRequest represents an alternative format for quiz submission
+type AlternativeQuizSubmissionRequest struct {
+	QuizID  string            `json:"quizId,omitempty"`                  // Optional quiz identifier
+	Answers map[string]string `json:"answers" validate:"required,min=1"` // questionId -> answer text
+	UserID  string            `json:"userId,omitempty"`                  // Optional user identifier
+}
+
 // QuizSubmissionResponse represents the response for quiz submission
 type QuizSubmissionResponse struct {
-	Score          int     `json:"score"`
-	Total          int     `json:"total"`
-	CorrectAnswers int     `json:"correctAnswers"`
-	Percentage     float64 `json:"percentage"`
-	Passed         bool    `json:"passed"`
-	SessionID      string  `json:"sessionId,omitempty"`
+	Score          int                `json:"score"`
+	Total          int                `json:"total"`
+	CorrectAnswers int                `json:"correctAnswers"`
+	Percentage     float64            `json:"percentage"`
+	Passed         bool               `json:"passed"`
+	SessionID      string             `json:"sessionId,omitempty"`
+	Results        []QuizAnswerResult `json:"results,omitempty"` // Detailed per-question results
+}
+
+// QuizAnswerResult represents the result for a single question
+type QuizAnswerResult struct {
+	QuestionID   int    `json:"questionId"`
+	Question     string `json:"question"`
+	SelectedID   int    `json:"selectedId"`
+	CorrectID    int    `json:"correctId"`
+	IsCorrect    bool   `json:"isCorrect"`
+	SelectedText string `json:"selectedText,omitempty"`
+	CorrectText  string `json:"correctText,omitempty"`
+}
+
+// QuestionResponse represents a simplified question format for API responses
+type QuestionResponse struct {
+	QuestionID    string   `json:"questionId"`
+	Text          string   `json:"text"`
+	Options       []string `json:"options"`
+	CorrectAnswer string   `json:"correctAnswer"`
 }

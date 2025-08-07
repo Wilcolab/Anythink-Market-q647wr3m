@@ -27,15 +27,15 @@ echo "4️⃣  Testing quiz submission (perfect score)..."
 curl -X POST "$BASE_URL/api/quiz/submit" \
   -H "Content-Type: application/json" \
   -d '{
+    "userId": "testUser123",
     "answers": [
       {"questionId": 1, "answerId": 1},
       {"questionId": 2, "answerId": 6},
       {"questionId": 3, "answerId": 12},
       {"questionId": 4, "answerId": 14},
       {"questionId": 5, "answerId": 18}
-    ],
-    "userId": "test-user-123"
-  }' | jq .
+    ]
+  }' | python3 -m json.tool
 
 # Test 5: Failing score submission
 echo ""

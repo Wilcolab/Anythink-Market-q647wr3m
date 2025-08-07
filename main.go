@@ -54,7 +54,7 @@ func main() {
 			return
 		}
 
-		questions, err := questionRepo.GetAll()
+		questions, err := quizService.GetAllQuestionsForAPI()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch questions"})
@@ -81,7 +81,7 @@ func main() {
 			return
 		}
 
-		question, err := questionRepo.GetByID(id)
+		question, err := quizService.GetQuestionForAPI(id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch question"})
@@ -106,14 +106,53 @@ func main() {
 			return
 		}
 
-		var submission models.QuizSubmissionRequest
-		if err := json.NewDecoder(r.Body).Decode(&submission); err != nil {
+		// Read the request body
+		var body map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid JSON body"})
 			return
 		}
 
-		result, err := quizService.SubmitQuiz(&submission)
+		// Detect format based on the structure of "answers"
+		var result *models.QuizSubmissionResponse
+		var err error
+
+		if answers, ok := body["answers"]; ok {
+			switch answers.(type) {
+			case []interface{}:
+				// Standard format: answers is an array
+				bodyBytes, _ := json.Marshal(body)
+				var submission models.QuizSubmissionRequest
+				if err := json.Unmarshal(bodyBytes, &submission); err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(map[string]string{"error": "Invalid format for standard submission"})
+					return
+				}
+				result, err = quizService.SubmitQuiz(&submission)
+
+			case map[string]interface{}:
+				// Alternative format: answers is an object/map
+				bodyBytes, _ := json.Marshal(body)
+				var submission models.AlternativeQuizSubmissionRequest
+				if err := json.Unmarshal(bodyBytes, &submission); err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(map[string]string{"error": "Invalid format for alternative submission"})
+					return
+				}
+				result, err = quizService.SubmitQuizAlternativeFormat(&submission)
+
+			default:
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]string{"error": "Invalid answers format"})
+				return
+			}
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Missing answers field"})
+			return
+		}
+
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
