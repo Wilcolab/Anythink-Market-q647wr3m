@@ -1,75 +1,150 @@
-# Go API Starter
+# Go Quiz API with PostgreSQL
 
-A minimal Go development environment with PostgreSQL for building APIs and web applications.
+A RESTful quiz API built with Go and PostgreSQL, featuring proper database integration with migrations, repository pattern, and environment configuration.
 
-## 🚀 Getting Started
+## Features
 
-This repository provides a clean foundation - perfect for starting any Go backend project!
+✅ **PostgreSQL Integration**: Full database connectivity using `lib/pq` driver  
+✅ **Database Models**: Proper Go structs with JSON and database tags  
+✅ **Migration System**: Automated database schema migrations  
+✅ **Repository Pattern**: Clean data access layer with proper separation  
+✅ **Environment Configuration**: Database connection via environment variables  
+✅ **Data Seeding**: Automatic population of initial quiz questions  
+✅ **CORS Support**: Cross-origin request handling  
+✅ **Health Check**: Service health monitoring endpoint  
 
-### Quick Start
+## Architecture
 
-1. **Open in Codespace** or clone locally
-2. **Start developing** 
+```
+├── config/          # Environment configuration
+├── database/        # Database connection and seeding
+├── migrations/      # Database schema migrations
+├── models/          # Data models and structs
+├── repository/      # Data access layer
+└── main.go         # HTTP server and API routes
+```
 
+## Database Schema
+
+- **questions**: Quiz questions with timestamps
+- **options**: Question options with correct answer flags
+- **quiz_sessions**: User quiz sessions (future use)
+- **quiz_results**: User answer tracking (future use)
+- **schema_migrations**: Migration version tracking
+
+## Environment Variables
+
+```bash
+# Database Configuration
+DB_HOST=localhost          # Database host
+DB_PORT=5432              # Database port
+DB_USER=postgres          # Database user
+DB_PASSWORD=postgres      # Database password
+DB_NAME=postgres          # Database name
+DB_SSL_MODE=disable       # SSL mode (disable/require/verify-full)
+
+# Server Configuration
+PORT=8080                 # Server port (optional, defaults to 8080)
+```
+
+## Quick Start
+
+1. **Setup Environment** (optional):
    ```bash
-   # The environment provides:
-   # ✅ Go 1.21+ development container
-   # ✅ PostgreSQL database server
-   # ✅ Hot reload with Air
-   # ✅ VS Code optimized setup
-
-   # Start your application with hot reload
-   air
+   cp .env.example .env
+   # Edit .env with your database credentials
    ```
 
-### What's Included
+2. **Start PostgreSQL** (if not running):
+   ```bash
+   # Using Docker
+   docker run --name postgres-quiz \
+     -e POSTGRES_PASSWORD=postgres \
+     -p 5432:5432 \
+     -d postgres:15
+   ```
 
-This starter provides the essentials:
+3. **Run the Application**:
+   ```bash
+   go mod tidy
+   go run .
+   ```
 
-- **Go Development Environment**: Latest Go with development tools
-- **PostgreSQL**: Database server ready for your schema
-- **Hot Reload**: Automatic restart on code changes with Air
-- **VS Code Integration**: Optimized extensions and settings
+4. **Verify Setup**:
+   ```bash
+   # Check health
+   curl http://localhost:8080/health
+   
+   # Get all questions
+   curl http://localhost:8080/api/questions
+   
+   # Get specific question
+   curl http://localhost:8080/api/questions/1
+   ```
 
-### Sample Application
+## API Endpoints
 
-The starter includes a minimal HTTP server (`main.go`):
+### Questions
+- `GET /api/questions` - Get all quiz questions
+- `GET /api/questions/{id}` - Get specific question by ID
 
-- **GET /** - Simple welcome endpoint
-- **Ready for expansion** - Add your routes, middleware, and logic
+### System
+- `GET /health` - Health check endpoint
+- `GET /` - Welcome message
 
-### Setting Up Your Database
+## Database Operations
 
-PostgreSQL is installed and running with a default development setup:
+The application automatically:
 
-**Default Database Credentials:**
-- **Host**: `localhost`
-- **Port**: `5432`
-- **Database**: `postgres`
-- **User**: `postgres`
-- **Password**: `postgres`
+1. **Connects** to PostgreSQL using environment configuration
+2. **Runs migrations** to create required tables
+3. **Seeds data** with initial quiz questions (if empty)
+4. **Serves data** from PostgreSQL instead of in-memory storage
 
-```bash
-# Connect to PostgreSQL with default credentials
-psql -h localhost -U postgres -d postgres
+## Development
 
-### Environment Setup
+### Adding New Questions
 
-The default database connection is already configured in `main.go`. For custom setups, create your environment variables:
+Questions are automatically seeded on first run. To add more questions, modify the `SeedData` function in `database/seed.go`.
 
-```bash
-# Example for custom database setup
-export POSTGRES_HOST=localhost
-export POSTGRES_PORT=5432
-export POSTGRES_DB=your_db_name
-export POSTGRES_USER=your_user
-export POSTGRES_PASSWORD=your_password
+### Creating Migrations
+
+Add new migrations to the `GetMigrations()` function in `migrations/migrations.go`:
+
+```go
+{
+    Version: 6,
+    Name:    "add_new_table",
+    Up:      `CREATE TABLE new_table (...);`,
+    Down:    `DROP TABLE new_table;`,
+}
 ```
 
-**Default connection string:**
-```
-host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable
+### Repository Pattern
+
+The repository pattern separates database operations from business logic:
+
+```go
+// Get question repository
+questionRepo := repository.NewQuestionRepository(db)
+
+// Use repository methods
+questions, err := questionRepo.GetAll()
+question, err := questionRepo.GetByID(1)
 ```
 
-**Ready to build?** 
-Start coding your Go application! 🚀
+## Production Deployment
+
+1. Set proper environment variables
+2. Use connection pooling for high-traffic scenarios
+3. Enable SSL mode for secure connections
+4. Consider using database migrations in CI/CD pipeline
+
+## Dependencies
+
+- **github.com/lib/pq**: PostgreSQL driver for Go
+- **Standard library**: HTTP server, JSON encoding, environment variables
+
+---
+
+🐹 **Go Quiz API** - Built with Go 1.21+ and PostgreSQL
