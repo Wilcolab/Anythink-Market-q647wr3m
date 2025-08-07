@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"encoding/json"
 
 	_ "github.com/lib/pq"
 )
@@ -16,6 +17,12 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello, Go API! 🐹")
+	})
+
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		response := map[string]string{"status": "ok", "message": "server is running"}
+		json.NewEncoder(w).Encode(response)
 	})
 
 	fmt.Println("🚀 Server starting on port 8080...")
