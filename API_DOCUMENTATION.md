@@ -16,29 +16,32 @@ Currently, no authentication is required. User identification is optional via `u
 ### 1. Get All Questions
 **GET** `/api/questions`
 
-Returns all available quiz questions with their options.
+Returns all available quiz questions with their options in a simplified format.
 
 **Response:**
 ```json
 [
   {
-    "id": 1,
-    "question": "What is a goroutine in Go?",
+    "questionId": "q1",
+    "text": "What is a goroutine in Go?",
     "options": [
-      {
-        "id": 1,
-        "question_id": 1,
-        "text": "A lightweight thread managed by Go runtime"
-      },
-      {
-        "id": 2,
-        "question_id": 1,
-        "text": "A Go function"
-      }
+      "A lightweight thread managed by Go runtime",
+      "A Go function",
+      "A Go package",
+      "A Go variable"
     ],
-    "answer": 1,
-    "created_at": "2025-08-07T09:10:46.121024Z",
-    "updated_at": "2025-08-07T09:10:46.121024Z"
+    "correctAnswer": "A lightweight thread managed by Go runtime"
+  },
+  {
+    "questionId": "q2",
+    "text": "Which keyword is used to define a new type in Go?",
+    "options": [
+      "struct",
+      "type", 
+      "var",
+      "func"
+    ],
+    "correctAnswer": "type"
   }
 ]
 ```
@@ -46,25 +49,29 @@ Returns all available quiz questions with their options.
 ### 2. Get Single Question
 **GET** `/api/questions/{id}`
 
-Returns a specific question by ID.
+Returns a specific question by ID in simplified format.
 
 **Response:**
 ```json
 {
-  "id": 1,
-  "question": "What is a goroutine in Go?",
-  "options": [...],
-  "answer": 1,
-  "created_at": "2025-08-07T09:10:46.121024Z",
-  "updated_at": "2025-08-07T09:10:46.121024Z"
+  "questionId": "q1",
+  "text": "What is a goroutine in Go?",
+  "options": [
+    "A lightweight thread managed by Go runtime",
+    "A Go function",
+    "A Go package", 
+    "A Go variable"
+  ],
+  "correctAnswer": "A lightweight thread managed by Go runtime"
 }
 ```
 
 ### 3. Submit Quiz
 **POST** `/api/quiz/submit`
 
-Submit quiz answers and receive detailed scoring results.
+Submit quiz answers and receive detailed scoring results. **Supports two formats** - choose the one that works best for your frontend!
 
+#### Format 1: Standard Array Format (Original)
 **Request Body:**
 ```json
 {
@@ -79,6 +86,22 @@ Submit quiz answers and receive detailed scoring results.
       "answerId": 6
     }
   ]
+}
+```
+
+#### Format 2: Alternative Object Format (Text-Based)
+**Request Body:**
+```json
+{
+  "quizId": "123",               // Optional quiz identifier
+  "userId": "exampleUserId",     // Optional user identifier
+  "answers": {
+    "q1": "A lightweight thread managed by Go runtime",  // questionId: answer text
+    "q2": "type",
+    "q3": "Both 2 and 3",
+    "q4": "0",
+    "q5": "fmt"
+  }
 }
 ```
 
@@ -191,7 +214,7 @@ Returns server health status.
 curl -s "http://localhost:8080/api/questions"
 ```
 
-### Submit Quiz (Perfect Score):
+### Submit Quiz - Standard Format (Perfect Score):
 ```bash
 curl -X POST "http://localhost:8080/api/quiz/submit" \
   -H "Content-Type: application/json" \
@@ -207,19 +230,35 @@ curl -X POST "http://localhost:8080/api/quiz/submit" \
   }'
 ```
 
-### Submit Quiz (Mixed Results):
+### Submit Quiz - Alternative Format (Perfect Score):
 ```bash
 curl -X POST "http://localhost:8080/api/quiz/submit" \
   -H "Content-Type: application/json" \
   -d '{
-    "userId": "testUser456",
-    "answers": [
-      {"questionId": 1, "answerId": 1},
-      {"questionId": 2, "answerId": 5},
-      {"questionId": 3, "answerId": 12},
-      {"questionId": 4, "answerId": 13},
-      {"questionId": 5, "answerId": 18}
-    ]
+    "quizId": "123",
+    "userId": "testUser456", 
+    "answers": {
+      "q1": "A lightweight thread managed by Go runtime",
+      "q2": "type",
+      "q3": "Both 2 and 3", 
+      "q4": "0",
+      "q5": "fmt"
+    }
+  }'
+```
+
+### Submit Quiz - Mixed Results (Alternative Format):
+```bash
+curl -X POST "http://localhost:8080/api/quiz/submit" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "answers": {
+      "q1": "A Go function",     # Wrong answer
+      "q2": "type",              # Correct
+      "q3": "var x = 5",        # Wrong answer  
+      "q4": "0",                # Correct
+      "q5": "fmt"               # Correct
+    }
   }'
 ```
 
